@@ -1,11 +1,13 @@
 #!/bin/bash
 
 logfile=".git/logs/switch.log"
+post_script=".git/hooks/post-checkout"
 
-if [[ ! -x .git/hooks/post-checkout ]]; then
-    cat <<HOOK
+if [[ ! -x $post_script ]]; then
+    cat <<HOOK >|"$post_script"
 git rev-parse --abbrev-ref HEAD >>$logfile
 HOOK
+    chmod 755 "$post_script"
 fi
 
 if [[ ! -f $logfile ]]; then
