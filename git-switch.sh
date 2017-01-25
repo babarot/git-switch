@@ -41,8 +41,7 @@ reverse() {
         }' 2>/dev/null
 }
 
-get_filter()
-{
+get_filter() {
     local x candidates
 
     if [[ -z $1 ]]; then
@@ -52,7 +51,8 @@ get_filter()
     # candidates should be list like "a:b:c" concatenated by a colon
     candidates="$1:"
 
-    while [[ -n $candidates ]]; do
+    while [[ -n $candidates ]]
+    do
         # the first remaining entry
         x=${candidates%%:*}
         # reset candidates
@@ -73,6 +73,7 @@ filter="$(get_filter "$GIT_FILTER")"
 
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
+candidates="$(
 {
     cat "$logfile" \
         | reverse \
@@ -81,6 +82,18 @@ current_branch="$(git rev-parse --abbrev-ref HEAD)"
         | cut -c3-
 } \
     | unique \
-    | grep -v "$current_branch" \
-    | $filter \
-    | xargs git checkout
+    | grep -v "$current_branch"
+)"
+
+if [[ -z $candidates ]]; then
+    echo "No available branches to be checkouted" >&2
+    exit 1
+fi
+
+selected_branch=$(echo "$candidates" | $filter)
+if [[ -z $selected_branch ]]; then
+    exit 0
+fi
+
+git checkout "$selected_branch"
+exit $?
