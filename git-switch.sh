@@ -1,20 +1,6 @@
 #!/bin/bash
 
-logfile=".git/logs/switch.log"
-post_script=".git/hooks/post-checkout"
-
-if [[ ! -x $post_script ]]; then
-    cat <<HOOK >|"$post_script"
-git rev-parse --abbrev-ref HEAD >>$logfile
-HOOK
-    chmod 755 "$post_script"
-fi
-
-if [[ ! -f $logfile ]]; then
-    touch "$logfile"
-fi
-
-GIT_FILTER=${GIT_FILTER:-fzy:peco:fzf}
+set -e
 
 unique() {
     if [[ -n $1 ]] && [[ -f $1 ]]; then
@@ -69,9 +55,30 @@ get_filter() {
     return 1
 }
 
-filter="$(get_filter "$GIT_FILTER")"
-
+# If you are not in a git repository, the script ends here
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+GIT_FILTER=${GIT_FILTER:-fzy:fzf-tmux:fzf:peco}
+
+filter="$(get_filter "$GIT_FILTER")"
+if [[ -z $selected_branch ]]; then
+    echo "No available filter in \$GIT_FILTER" >&2
+    exit 1
+fi
+
+logfile=".git/logs/switch.log"
+post_script=".git/hooks/post-checkout"
+
+if [[ ! -x $post_script ]]; then
+    cat <<HOOK >|"$post_script"
+git rev-parse --abbrev-ref HEAD >>$logfile
+HOOK
+    chmod 755 "$post_script"
+fi
+
+if [[ ! -f $logfile ]]; then
+    touch "$logfile"
+fi
 
 candidates="$(
 {
@@ -90,7 +97,7 @@ if [[ -z $candidates ]]; then
     exit 1
 fi
 
-selected_branch=$(echo "$candidates" | $filter)
+selected_branch="$(echo "$candidates" | $filter)"
 if [[ -z $selected_branch ]]; then
     exit 0
 fi
