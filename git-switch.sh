@@ -61,7 +61,7 @@ current_branch="$(git rev-parse --abbrev-ref HEAD)"
 GIT_FILTER=${GIT_FILTER:-fzy:fzf-tmux:fzf:peco}
 
 filter="$(get_filter "$GIT_FILTER")"
-if [[ -z $selected_branch ]]; then
+if [[ -z $filter ]]; then
     echo "No available filter in \$GIT_FILTER" >&2
     exit 1
 fi
@@ -89,7 +89,8 @@ candidates="$(
         | cut -c3-
 } \
     | unique \
-    | grep -v "$current_branch"
+    | grep -v "$current_branch" || true
+    # ^ if the candidates is empty, grep return false
 )"
 
 if [[ -z $candidates ]]; then
