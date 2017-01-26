@@ -85,10 +85,11 @@ candidates="$(
     cat "$logfile" \
         | reverse \
         | unique
-    git branch -a \
+    git branch -a --color \
         | cut -c3-
 } \
     | unique \
+    | grep -v HEAD \
     | grep -v "$current_branch" || true
     # ^ if the candidates is empty, grep return false
 )"
