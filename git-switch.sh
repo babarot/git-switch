@@ -56,6 +56,7 @@ get_filter() {
 }
 
 # If you are not in a git repository, the script ends here
+git_root_dir="$(git rev-parse --show-toplevel)"
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
 GIT_FILTER=${GIT_FILTER:-fzy:fzf-tmux:fzf:peco}
@@ -66,8 +67,8 @@ if [[ -z $filter ]]; then
     exit 1
 fi
 
-logfile=".git/logs/switch.log"
-post_script=".git/hooks/post-checkout"
+logfile="$git_root_dir/.git/logs/switch.log"
+post_script="$git_root_dir/.git/hooks/post-checkout"
 
 if [[ ! -x $post_script ]]; then
     cat <<HOOK >|"$post_script"
