@@ -2,6 +2,14 @@
 
 set -e
 
+colorize_remotes() {
+    perl -pe 's|^(remotes/.*)$|\033[31m$1\033[m|g'
+}
+
+remove_color() {
+    perl -pe 's/\e\[?.*?[\@-~]//g'
+}
+
 unique() {
     if [[ -n $1 ]] && [[ -f $1 ]]; then
         cat "$1"
@@ -86,11 +94,12 @@ candidates="$(
     cat "$logfile" \
         | reverse \
         | unique
-    git branch -a --color \
+    git branch -a --no-color \
         | cut -c3-
 } \
     | unique \
-    | grep -v HEAD \
+    | colorize_remotes \
+    | grep -v "HEAD" \
     | grep -v "$current_branch" || true
     # ^ if the candidates is empty, grep return false
 )"
@@ -100,7 +109,7 @@ if [[ -z $candidates ]]; then
     exit 1
 fi
 
-selected_branch="$(echo "$candidates" | $filter)"
+selected_branch="$(echo "$candidates" | $filter | remove_color)"
 if [[ -z $selected_branch ]]; then
     exit 0
 fi
